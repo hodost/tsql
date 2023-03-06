@@ -2,8 +2,9 @@
 01-Introdution to SELECT Statements
 Microsoft SQL from A to Z
 -----------------------------------------------
--- VSCode Settings 1. View --> Word Wrap
--- VSCode Settings 2. View --> Editor Layout --> Flip Layout
+-- VSCode Settings 
+	1. View --> Word Wrap
+	2. View --> Editor Layout --> Flip Layout
 **********************************************/
 
 SELECT 'Hello World'
