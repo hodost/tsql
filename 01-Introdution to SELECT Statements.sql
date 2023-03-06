@@ -8,8 +8,7 @@ Microsoft SQL from A to Z
 **********************************************/
 
 SELECT 'Hello World'
-SELECT 'Valami', 'Csoda'
-SELECT 'Valami', 'Csoda', 'Bana'
+SELECT 'Orange', 'Banana', 'Apple'
 SELECT 'Adam''s Apple'	-- Use two apostrophes
 SELECT 'John''s Office'
 ----------------------------------
