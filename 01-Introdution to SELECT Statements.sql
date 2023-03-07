@@ -11,7 +11,7 @@ SELECT 'Hello World'
 SELECT 'Orange', 'Banana', 'Apple'
 SELECT 'Adam''s Apple'	-- Use two apostrophes
 SELECT 'John''s Office'
-----------------------------------
+------------------------------------
 SELECT 4 + 2
 SELECT 4 - 2
 SELECT 4 * 2
