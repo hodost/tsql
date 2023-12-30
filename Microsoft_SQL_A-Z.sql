@@ -1,5 +1,11 @@
-﻿-- Microsoft SQL from A to Z
--- Udemy tanfolyam és jegyzet
+﻿/**********************************************
+Microsoft SQL from A to Z
+Udemy tanfolyam és jegyzet
+-----------------------------------------------
+-- VSCode Settings 
+	1. View --> Word Wrap
+	2. View --> Editor Layout --> Flip Layout
+**********************************************/
 
 /***********************************************************************
 Section 2: Literal SELECT Statements - Szó szerinti SELECT utasítások
@@ -437,3 +443,5 @@ SELECT
     EDH.DepartmentID, EDH.StartDate, EDH.EndDate
 FROM HumanResources.Employee E 
 INNER JOIN HumanResources.EmployeeDepartmentHistory EDH ON E.BusinessEntityID = EDH.BusinessEntityID;
+
+USE AdventureWorks2019
