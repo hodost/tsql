@@ -474,3 +474,40 @@ FROM Production.Product P
 INNER JOIN Production.ProductInventory PI ON P.ProductID = PI.ProductID
 WHERE P.ListPrice > 0;
 
+/***********************************************************************
+Section 8: Grouping with the GROUP BY Clause - Csoportosítás a GROUP BY záradékkal
+
+A GROUP BY záradékot SQL lekérdezésekben használjuk, amikor összesített adatokat szeretnénk visszaadni csoportok szerint. 
+Ez a záradék csoportokra bontja az eredményhalmazt a megadott oszlopok alapján, és lehetővé teszi összesítő függvények 
+(mint például COUNT, SUM, AVG, MAX, MIN) használatát minden csoporton belül.
+
+Mikor használjuk:
+Ha az adatokat csoportosítani szeretnéd és összesített értékeket kell számítanod.
+Ha használsz olyan függvényeket, mint COUNT(), SUM(), AVG(), MIN(), MAX(), ezek gyakran utalnak a GROUP BY használatának szükségességére.
+***********************************************************************/
+
+SELECT SalesPersonID, SUM(TotalDue) AS [Total Sales]
+FROM Sales.SalesOrderHeader
+GROUP BY SalesPersonID
+
+SELECT SalesPersonID, TotalDue
+FROM Sales.SalesOrderHeader
+ORDER BY SalesPersonID
+----------------------------------------------------
+SELECT ProductID, SUM(Quantity) AS [Total Quantity]
+FROM Production.ProductInventory
+GROUP BY ProductID
+
+SELECT ProductID, Quantity
+FROM Production.ProductInventory
+GROUP BY ProductID
+
+
+SELECT 	PC.Name AS [Category Name],
+		PS.Name AS [Subcategory Name],
+		COUNT(*) AS [Products in Category]
+FROM Production.ProductSubcategory PS
+INNER JOIN Production.Product P ON PS.ProductSubcategoryID = P.ProductSubcategoryID
+INNER JOIN Production.ProductCategory PC ON PC.ProductCategoryID = PS.ProductCategoryID
+GROUP BY PC.Name, PS.Name
+ORDER BY 1,2
