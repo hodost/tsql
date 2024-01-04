@@ -695,3 +695,11 @@ ORDER BY NumberOfOrders DESC
 /***********************************************************************
 Section 10: Built-In SQL Server Functions - Beépített SQL Server függvények
 ***********************************************************************/
+-- String Built-In Functions - Beépített karakterlánc-függvények
+USE AdventureWorks2019
+-- LEFT()
+--  egy adott szöveges érték (string) első 'n' karakterét adja vissza.
+SELECT	Name, 
+		LEFT(Name, 10) AS ShortName
+FROM Production.Product;
+
