@@ -698,8 +698,35 @@ Section 10: Built-In SQL Server Functions - Beépített SQL Server függvények
 -- String Built-In Functions - Beépített karakterlánc-függvények
 USE AdventureWorks2019
 -- LEFT()
---  egy adott szöveges érték (string) első 'n' karakterét adja vissza.
+--  egy adott szöveges érték (string) ELSŐ 'n' karakterét adja vissza.
 SELECT	Name, 
-		LEFT(Name, 10) AS ShortName
+		LEFT(Name, 8) AS FirstXChars		-- inclusive
 FROM Production.Product;
+
+-- RIGHT()
+--  egy adott szöveges érték (string) UTOLSÓ 'n' karakterét adja vissza.
+SELECT	Name, 
+		RIGHT(Name, 8) AS LastXChars		-- inclusive
+FROM Production.Product;
+
+-- SUBSTRING()
+-- Adja vissza azokat a karaktereket, amik a 2. és a 4. karakterek között vannak.
+SELECT	Name, 
+		SUBSTRING(Name, 2, 4) AS CharsXtoY		-- inclusive
+FROM Production.Product;
+/* A legtöbb objektumorientált programozási nyelvben vagy akár általános szkriptnyelvben a karakterlánc vagy tömb első karaktere általában a 0 indexérték. A T-SQL-ben a kezdeti index értéke 1. Legyen ezzel tisztában a lekérdezések fejlesztésénél. */
+
+-- Mond meg, hogy a "QL" karakter(lánc) hányadik karkternél kezdődik
+SELECT	CHARINDEX('QL', 'T-SQL Training Guide')
+
+-- LTRIM()
+-- Eltávolítja a felesleges szóközöket a karakterlánc ELEJÉRŐL.
+SELECT LTRIM('             This                     ') AS Balrol
+
+-- RTRIM()
+-- Eltávolítja a felesleges szóközöket a karakterlánc VÉGÉRŐL.
+SELECT RTRIM('             This                     ') AS Jobbrol
+
+-- Ellenőrzés
+SELECT ('             This                     ') AS Teszt
 
