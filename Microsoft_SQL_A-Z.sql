@@ -1,8 +1,4 @@
-﻿﻿<<<<<<< HEAD
 ﻿﻿/**********************************************
-=======
-﻿/**********************************************
->>>>>>> dd200152e21422cd53b064f993efa9dddb2bb587
 Microsoft SQL from A to Z
 Udemy tanfolyam és jegyzet
 -----------------------------------------------
@@ -707,6 +703,13 @@ SELECT	Name,
 		LEFT(Name, 8) AS FirstXChars		-- inclusive
 FROM Production.Product;
 
+-- Írj kérlek egy lekérdezést, amely visszaadja a terméknév kezdőbetűit és minden kezdőbetűhöz tartozó termékek számát.
+SELECT	LEFT(Name, 1) as Kezdőbetű,
+		COUNT(*) as Termékek_Száma
+FROM Production.Product
+GROUP BY LEFT(Name, 1)
+ORDER BY Kezdőbetű
+
 -- RIGHT()
 --  egy adott szöveges érték (string) UTOLSÓ 'n' karakterét adja vissza.
 SELECT	Name, 
@@ -734,13 +737,41 @@ SELECT RTRIM('             This                     ') AS Jobbrol
 -- Ellenőrzés
 SELECT ('             This                     ') AS Teszt
 
+-- REPLACE()
+-- Karakterek cseréje egy stringben:
+-- Cseréld a megadott szövegben a T-t X-re.
+SELECT REPLACE('T-SQL Training Guide', 'T', 'X')	-- Miben, mit, mire
 
+-- Minden "a" betű a Person.Person egyes keresztneveiben cseréljen "REDACTED" kifejezésre.
+SELECT 	FirstName, 
+		REPLACE(FirstName, 'a', '_REDACTED_')
+FROM Person.Person
 
-SELECT REPLACE('T-SQL Training Guide', 'T', 'X')
-
--- Hogy működik az alábbi utasítás?
-SELECT REPLACE(REPLACE(PhoneNumber,'(','-'), ')','-') as Replaced, PhoneNumber
+SELECT *
 FROM [Person].[PersonPhone]
+WHERE BusinessEntityID = 1
 
-SELECT TOP 100*
-FROM Person.PersonPhone
+-- A "697-555-0142" telefonszámot változtasd "(697) 555-0142" típusúvá.
+SELECT '(' + LEFT(PhoneNumber, 3) + ') ' + SUBSTRING(PhoneNumber, 5, 3) + '-' + RIGHT(PhoneNumber, 4) as FormattedPhoneNumber
+FROM [Person].[PersonPhone]
+WHERE BusinessEntityID = 1
+/* Magyarázat:
+- LEFT(PhoneNumber, 3): Ez kiválasztja a telefonszám első három számjegyét (697)
+- SUBSTRING(PhoneNumber, 5, 3): Ez kiválasztja a telefonszám középső három számjegyét. (555)
+- RIGHT(PhoneNumber, 4): Ez kiválasztja a telefonszám utolsó négy számjegyét (0142)
+Ezután összefűzzük ezeket a részeket a kívánt formátumban: ( + az első három számjegy + ) + a középső három számjegy + - + az utolsó négy számjegy. */
+
+-- A "(697) 555-0142" telefonszámot változtasd "697-555-0142" típusúvá.
+SELECT 	REPLACE(REPLACE(PhoneNumber,'(','-'), ')','-') AS Replaced, 
+		PhoneNumber
+FROM [Person].[PersonPhone]
+WHERE BusinessEntityID = 1
+/* Magyarázat:
+- REPLACE(PhoneNumber,'(','-'): Ez az első REPLACE függvény minden ( karaktert - karakterre cserél a PhoneNumber oszlopban. 
+	Például, ha a telefonszám (123)456-7890, ez a lépés a PhoneNumber-t -123)456-7890-re változtatja.
+- REPLACE(..., ')','-'): A második REPLACE függvény az első REPLACE függvény eredményét veszi, és minden ) karaktert - karakterre cserél. 
+	Ebben az esetben a fenti példában a -123)456-7890 telefonszám -123-456-7890-re változik.
+- AS Replaced: Ez az alias (álnevet) ad a megváltozott PhoneNumber oszlopnak, amely mostantól Replaced néven lesz ismert a lekérdezés eredményében.
+- PhoneNumber: Megjeleníti a PhoneNumber oszlopot.
+*/
+
