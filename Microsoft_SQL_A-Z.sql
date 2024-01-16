@@ -1,5 +1,14 @@
-﻿-- Microsoft SQL from A to Z
--- Udemy tanfolyam és jegyzet
+﻿﻿/**********************************************
+Microsoft SQL from A to Z
+Udemy tanfolyam és jegyzet
+-----------------------------------------------
+-- VSCode Settings 
+	1. View --> Word Wrap
+	2. View --> Editor Layout --> Flip Layout
+-----------------------------------------------
+AdventureWorks2019 felépítése:
+https://dataedo.com/samples/html/AdventureWorks/doc/AdventureWorks_2/tables/Production_ProductInventory_158.html
+**********************************************/
 
 /***********************************************************************
 Section 2: Literal SELECT Statements - Szó szerinti SELECT utasítások
@@ -438,4 +447,296 @@ SELECT
 FROM HumanResources.Employee E 
 INNER JOIN HumanResources.EmployeeDepartmentHistory EDH ON E.BusinessEntityID = EDH.BusinessEntityID;
 
+/***********************************************************************
+Section 7: Aggregate Functions - Összesítő függvények
+Ablakfüggvények része (Window functions)
+***********************************************************************/
 USE AdventureWorks2019
+
+-- How many rows are in the Person.Person table? Use an aggregate function NOT “SELECT *”.
+SELECT COUNT(*)
+FROM Person.Person
+
+-- How many rows in the Person.Person table do not have a NULL value in the MiddleName column?
+SELECT COUNT(MiddleName)
+FROM Person.Person
+
+-- What is the average StandardCost (located in Production.Product) for each product where the StandardCost is greater than $0.00?
+SELECT AVG(StandardCost)
+FROM Production.Product
+WHERE StandardCost > 0.00
+
+-- What is the average Freight amount for each sale (found in Sales.SalesOrderHeader) where the sale took place in TerritoryID 4?
+SELECT AVG(Freight)
+FROM Sales.SalesOrderHeader
+WHERE TerritoryID = 4
+
+-- How expensive is the most expensive product, by ListPrice, in the table Production.Product?
+SELECT MAX(ListPrice)
+FROM Production.Product
+
+-- Join the Production.Product table and the Production.ProductInventory table for only the products that appear in both table. Use the ProductID as the joining column. Production.ProductInventory contains the quantity of each product (several rows can appear for each product to indicate the product appears in multiple locations). Your goal is to determine how much money we would earn if we sold every product for its list price for each product with a ListPrice greater than $0. That is, if you summed the product of each product’s inventory by its list price, what would that value be?
+SELECT SUM(P.ListPrice * PI.Quantity) AS TotalValue
+FROM Production.Product P
+INNER JOIN Production.ProductInventory PI ON P.ProductID = PI.ProductID
+WHERE P.ListPrice > 0;
+
+/***********************************************************************
+Section 8: Grouping with the GROUP BY Clause - Csoportosítás a GROUP BY záradékkal
+
+A GROUP BY záradékot SQL lekérdezésekben használjuk, amikor összesített adatokat szeretnénk visszaadni csoportok szerint. 
+Ez a záradék csoportokra bontja az eredményhalmazt a megadott oszlopok alapján, és lehetővé teszi összesítő függvények 
+(mint például COUNT, SUM, AVG, MAX, MIN) használatát minden csoporton belül.
+
+Mikor használjuk:
+Ha az adatokat csoportosítani szeretnéd és összesített értékeket kell számítanod.
+Ha használsz olyan függvényeket, mint COUNT(), SUM(), AVG(), MIN(), MAX(), ezek gyakran utalnak a GROUP BY használatának szükségességére.
+
+A GROUP BY kritikus eleme az SQL-nek, mert strukturált és értelmes módja az adatok csoportosításának és összesítésének. 
+Az összesítő függvények alkalmazása nélkül az adatok egyszerű összegzése nem adna elegendő rugalmasságot és pontosságot 
+a komplex adatlekérdezések és elemzések számára.
+***********************************************************************/
+-- Számold ki az eladások összegét értékesítőnként.
+SELECT 	SalesPersonID,	-- Ez ad ID többször is előfordul, egy értékesítőnek több eladása is lehet
+		SUM(TotalDue) AS [Total Sales] -- Az összes eladások összege (TotalDue) értékesítőnként
+FROM Sales.SalesOrderHeader
+GROUP BY SalesPersonID
+
+SELECT SalesPersonID, TotalDue, OrderDate, AccountNumber
+FROM Sales.SalesOrderHeader
+ORDER BY SalesPersonID DESC
+
+-- Számold meg, hány termék van minden termékalkategóriában.
+SELECT	PC.Name AS [Category Name], 
+		COUNT(*) AS [Number of Products]
+FROM Production.Product P
+INNER JOIN Production.ProductSubcategory PS ON P.ProductSubcategoryID = PS.ProductSubcategoryID
+INNER JOIN Production.ProductCategory PC ON PS.ProductCategoryID = PC.ProductCategoryID
+GROUP BY PC.Name;
+
+-- Számold meg, hány termék van minden alkategóriában. Jelenítsd meg a kategóriákat is.
+SELECT	PC.Name AS [Category Name],
+		PS.Name AS [Subcategory Name], 
+		COUNT(P.ProductID) AS [Number of Products]	-- Megszámolja az egyes kategória-alkategória párosokban található termékek számát.
+FROM Production.Product P
+INNER JOIN Production.ProductSubcategory PS ON P.ProductSubcategoryID = PS.ProductSubcategoryID
+INNER JOIN Production.ProductCategory PC ON PS.ProductCategoryID = PC.ProductCategoryID
+GROUP BY PC.Name, PS.Name	-- Csoportosítja az eredményeket kategória és alkategória név alapján.
+ORDER BY PC.Name, PS.Name;
+
+-- Számold ki az átlagos értékesítési mennyiséget minden értékesítési területen.
+SELECT SOH.TerritoryID, ST.[Group], ST.Name, SOH.TotalDue
+FROM Sales.SalesOrderHeader SOH
+INNER JOIN Sales.SalesTerritory ST ON SOH.TerritoryID = ST.TerritoryID
+---------------------------------------------------
+SELECT 	ST.[Group] AS [Territory Group],
+		ST.Name AS [Territory Name], 
+		AVG(SOH.TotalDue) AS [Average Sales]
+FROM Sales.SalesOrderHeader SOH
+INNER JOIN Sales.SalesTerritory ST ON SOH.TerritoryID = ST.TerritoryID
+GROUP BY ST.[Group], ST.Name
+ORDER BY ST.[Group]
+
+-- Számold meg, hány alkalmazott dolgozik minden részlegen.
+SELECT	D.Name AS [Department Name],
+		COUNT(*) AS [Number of Employees]	-- Megszámolja az összes sor (alkalmazott) számát minden csoportban
+FROM HumanResources.EmployeeDepartmentHistory EDH
+INNER JOIN HumanResources.Department D ON EDH.DepartmentID = D.DepartmentID
+WHERE EndDate IS NULL	-- Ez azt jelenti, hogy az alkalmazott jelenleg is a megadott részlegen dolgozik.
+GROUP BY D.Name		-- Csoportosítja az eredményeket a részleg neve (D.Name) alapján
+
+-- Számold ki az összes eladott termék átlagos listaárát minden termékalkategóriában.
+SELECT	PC.Name AS [Category Name], 
+		AVG(P.ListPrice) AS [Average List Price]
+FROM Production.Product P
+INNER JOIN Production.ProductSubcategory PS ON P.ProductSubcategoryID = PS.ProductSubcategoryID
+INNER JOIN Production.ProductCategory PC ON PS.ProductCategoryID = PC.ProductCategoryID
+WHERE P.ListPrice > 0
+GROUP BY PC.Name
+
+-- In the Person.Person table, how many people are associated with each PersonType?
+SELECT 	PersonType,
+		COUNT(PersonType) AS Count
+FROM Person.Person P
+GROUP BY PersonType
+ORDER BY COUNT(PersonType)
+
+-- Using only one query, find out how many products in Production.Product are the color “red” and how many are “black”.
+SELECT 	Color,
+		COUNT(Color) AS Count
+FROM Production.Product
+WHERE Color IN ('Red', 'Black')
+GROUP BY Color
+ORDER BY Color
+
+/***********************************************************************
+Section 9: Filtering Groups with HAVING Clause - Csoportok szűrése HAVING záradékkal
+
+A HAVING záradék az SQL SELECT utasítás utolsó záradéka. Valójában nagyon hasonlóan viselkedik, mint a WHERE záradék. 
+Míg a WHERE záradék az egyes sorokat szűri ki, a HAVING záradék a csoportokat. 
+A HAVING klauzula SOHA nem használható a SELECT utasítás GROUP BY klauzula használata nélkül. 
+Mivel a HAVING záradék kiszűri a csoportokat az eredményekből, ebből következik, hogy a GROUP BY záradéknak léteznie kell, 
+hogy meghatározza ezeket a csoportokat a szűrés előtt.
+
+A HAVING záradék először egy összesítő függvényt igényel. Mivel a csoportokat a számok, maximumok, minimumok stb. alapján fogjuk kizárni, 
+ezért meg kell adnunk, hogy melyik aggregált függvényt fogjuk használni a csoportok szűrésére.
+***********************************************************************/
+-- Mutasd meg területenként, hogy hol mennyi volt az összes értékesítés 2012-ben. Csak a 4.000.000.- nál nagyobb összegeknél mutasd.
+SELECT 	ST.Name AS [Territory Name], 
+		SUM(TotalDue) AS [Total Sales - 2012]	-- Kiszámítja az összes értékesítési összeget (TotalDue) minden területen 2012-ben
+FROM Sales.SalesOrderHeader SOH
+INNER JOIN Sales.SalesTerritory ST ON ST.TerritoryID = SOH.TerritoryID
+WHERE OrderDate BETWEEN '2012-01-01' AND '2012-12-31'	-- Leszűrjük dátumra
+GROUP BY ST.Name	-- Csoportosítja az eredményeket értékesítési terület neve alapján. Ez biztosítja, hogy minden területhez egy összegzett sor tartozik.
+HAVING SUM(TotalDue) > 4000000	-- Csak azokat az értékesítési területeket jeleníti meg, ahol a teljes értékesítési összeg meghaladja a 4 000 000.
+ORDER BY [Total Sales - 2012]
+
+-- Hány, 15-nél több termékből álló alkategória van?
+SELECT 	PS.Name AS [Subcategory Name], 
+		COUNT(*) AS [Product Count]	-- Termékek összegzése. Ez akár el is hagyható
+FROM Production.Product P
+INNER JOIN Production.ProductSubcategory PS ON PS.ProductSubcategoryID = P.ProductSubcategoryID
+GROUP BY PS.Name
+HAVING COUNT(*) > 15	-- 15-nél több termék szűrése
+
+-- Hány, 15-nél több termékből álló alkategória van?
+SELECT PS.Name AS [Subcategory Name]
+FROM Production.Product P
+INNER JOIN Production.ProductSubcategory PS ON PS.ProductSubcategoryID = P.ProductSubcategoryID
+GROUP BY PS.Name
+HAVING COUNT(*) > 15	-- 15-nél több termék szűrése
+
+-- Csak azokat az osztályokat szeretnénk megtalálni a vállalaton belül, amelyek legalább 8 alkalmazottal rendelkeznek.
+SELECT 	Department,
+		COUNT(*) AS EmployeeCount
+FROM HumanResources.vEmployeeDepartment
+GROUP BY Department
+HAVING COUNT(*) > 8
+ORDER BY EmployeeCount
+
+-- Csak azokat az osztályokat szeretnénk megtalálni a vállalaton belül, amelyek 6-10 alkalmazottal rendelkeznek.
+SELECT 	Department,
+		COUNT(*) AS EmployeeCount
+FROM HumanResources.vEmployeeDepartment
+GROUP BY Department
+HAVING COUNT(*) BETWEEN 6 AND 10	--Include
+ORDER BY EmployeeCount
+
+-- Szeretnénk látni az egyes értékesítési személyek által értékesített teljes összeget és az egyes értékesítési személyek által végzett értékesítések számát 2012-ben.
+SELECT	SalesPersonID, -- OrderDate
+		SUM(TotalDue) AS SUM,
+		COUNT(TotalDue) AS COUNT
+FROM Sales.SalesOrderHeader
+WHERE OrderDate BETWEEN '2012-01-01' AND '2012-12-31'	-- Include
+GROUP BY SalesPersonID
+HAVING 	SUM(TotalDue) > 2000000		-- Legalább 2.000.000 az értékesítési összeg
+		AND COUNT(TotalDue) > 75	-- Legalább 75 értékesítés
+ORDER BY SUM, COUNT
+
+/* Ha teljesen megértette a WHERE záradékot, akkor a HAVING záradék nem okozhat sok gondot. 
+A legfontosabb különbség az, hogy a WHERE záradék az oszlopértékek alapján szűri ki a sorokat, 
+míg a HAVING záradék az aggregált függvények alapján szűri ki a csoportokat. 
+Ha megérti ezt a finom különbséget, akkor a HAVING záradék könnyen megy, és nem okoz majd sok gondot. */
+
+/*Find the total sales by territory for all rows in the Sales.SalesOrderHeader table. 
+Return only those territories that have exceeded $10 million in historical sales. Return the total sales and the TerritoryID column.*/
+SELECT	TerritoryID, 
+    	SUM(TotalDue) AS [Total Sales]
+FROM Sales.SalesOrderHeader
+GROUP BY TerritoryID
+HAVING SUM(TotalDue) > 10000000
+ORDER BY SUM(TotalDue)
+
+-- Using the query from the previous question, join to the Sales.SalesTerritory table and replace the TerritoryID column with the territory’s name.
+SELECT	ST.Name,
+    	SUM(SOH.TotalDue) AS [Total Sales]
+FROM Sales.SalesOrderHeader SOH
+INNER JOIN Sales.SalesTerritory ST ON SOH.TerritoryID = ST.TerritoryID
+GROUP BY ST.Name
+HAVING SUM(TotalDue) > 10000000
+ORDER BY SUM(TotalDue)
+
+-- Using the Production.Product table, find how many products are associated with each color. Ignore all rows where the color has a NULL value. 
+--Once grouped, return to the results only those colors that had at least 20 products with that color.
+SELECT 	Color, 
+		COUNT(Color) AS COUNT
+FROM Production.Product
+WHERE Color IS NOT NULL
+GROUP BY Color
+HAVING COUNT(Color) > 20
+ORDER BY COUNT
+
+/* Starting with the Sales.SalesOrderHeader table, join to the Sales.SalesOrderDetail table. 
+This table contains the line item details associated with each sale. 
+From Sales.SalesOrderDetail, join to the Production.Product table. Return the Name column from Production.Product and assign it the column alias “Product Name”. 
+For each product, find out how many of each product was ordered for all orders that occurred in 2012. Only output those products where at least 200 were ordered.*/
+SELECT 	P.Name AS [Product Name],
+    	SUM(SOD.OrderQty) AS [Total Ordered]
+FROM Sales.SalesOrderHeader SOH
+INNER JOIN Sales.SalesOrderDetail SOD ON SOH.SalesOrderID = SOD.SalesOrderID
+INNER JOIN Production.Product P ON SOD.ProductID = P.ProductID
+WHERE YEAR(SOH.OrderDate) = 2012
+GROUP BY P.Name
+HAVING SUM(SOD.OrderQty) >= 200
+ORDER BY [Total Ordered]
+
+/* Find the first and last name of each customer who has placed at least 6 orders between July 1, 2012 and December 31, 2013. 
+Order your results by the number of orders placed in descending order.*/
+SELECT 	PP.FirstName, PP.LastName, 
+		COUNT(SOH.SalesOrderID) AS NumberOfOrders
+FROM Sales.Customer AS SC
+INNER JOIN Sales.SalesOrderHeader AS SOH ON SC.CustomerID = SOH.CustomerID
+INNER JOIN Person.Person AS PP ON SC.PersonID = PP.BusinessEntityID
+WHERE SOH.OrderDate BETWEEN '2012-07-01' AND '2013-12-31'
+GROUP BY PP.FirstName, PP.LastName
+HAVING COUNT(SOH.SalesOrderID) >= 6
+ORDER BY NumberOfOrders DESC
+
+/***********************************************************************
+Section 10: Built-In SQL Server Functions - Beépített SQL Server függvények
+***********************************************************************/
+-- String Built-In Functions - Beépített karakterlánc-függvények
+USE AdventureWorks2019
+-- LEFT()
+--  egy adott szöveges érték (string) ELSŐ 'n' karakterét adja vissza.
+SELECT	Name, 
+		LEFT(Name, 8) AS FirstXChars		-- inclusive
+FROM Production.Product;
+
+-- RIGHT()
+--  egy adott szöveges érték (string) UTOLSÓ 'n' karakterét adja vissza.
+SELECT	Name, 
+		RIGHT(Name, 8) AS LastXChars		-- inclusive
+FROM Production.Product;
+
+-- SUBSTRING()
+-- Adja vissza azokat a karaktereket, amik a 2. és a 4. karakterek között vannak.
+SELECT	Name, 
+		SUBSTRING(Name, 2, 4) AS CharsXtoY		-- inclusive
+FROM Production.Product;
+/* A legtöbb objektumorientált programozási nyelvben vagy akár általános szkriptnyelvben a karakterlánc vagy tömb első karaktere általában a 0 indexérték. A T-SQL-ben a kezdeti index értéke 1. Legyen ezzel tisztában a lekérdezések fejlesztésénél. */
+
+-- Mond meg, hogy a "QL" karakter(lánc) hányadik karkternél kezdődik
+SELECT	CHARINDEX('QL', 'T-SQL Training Guide')
+
+-- LTRIM()
+-- Eltávolítja a felesleges szóközöket a karakterlánc ELEJÉRŐL.
+SELECT LTRIM('             This                     ') AS Balrol
+
+-- RTRIM()
+-- Eltávolítja a felesleges szóközöket a karakterlánc VÉGÉRŐL.
+SELECT RTRIM('             This                     ') AS Jobbrol
+
+-- Ellenőrzés
+SELECT ('             This                     ') AS Teszt
+
+
+
+SELECT REPLACE('T-SQL Training Guide', 'T', 'X')
+
+-- Hogy működik az alábbi utasítás?
+SELECT REPLACE(REPLACE(PhoneNumber,'(','-'), ')','-') as Replaced, PhoneNumber
+FROM [Person].[PersonPhone]
+
+SELECT TOP 100*
+FROM Person.PersonPhone
