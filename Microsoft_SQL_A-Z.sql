@@ -704,10 +704,10 @@ SELECT	Name,
 FROM Production.Product;
 
 -- Írj kérlek egy lekérdezést, amely visszaadja a terméknév kezdőbetűit és minden kezdőbetűhöz tartozó termékek számát.
-SELECT	LEFT(Name, 1) as Kezdőbetű,
-		COUNT(*) as Termékek_Száma
+SELECT	LEFT(Name, 1) as Kezdőbetű,		-- Kiválasztja minden termék nevének első betűjét
+		COUNT(*) as Termékek_Száma		-- Megszámolja, hogy mennyi termék tartozik minden egyes kezdőbetűhöz
 FROM Production.Product
-GROUP BY LEFT(Name, 1)
+GROUP BY LEFT(Name, 1)		-- Csoportosítja a termékeket a nevük első betűje szerint
 ORDER BY Kezdőbetű
 
 -- RIGHT()
@@ -775,3 +775,56 @@ WHERE BusinessEntityID = 1
 - PhoneNumber: Megjeleníti a PhoneNumber oszlopot.
 */
 
+-- LOWER()
+-- Kisbetűssé alakítja a karaktereket
+-- Make every character in the FirstName column of Person.Person lowercase
+SELECT	FirstName, 
+		LOWER(FirstName) as LowerCase
+FROM Person.Person
+
+-- UPPER()
+-- Nagybetűssé alakítja a karaktereket
+SELECT 	FirstName + ' ' + LastName, 
+		UPPER(FirstName) + ' ' + LOWER(LastName)
+FROM Person.Person
+
+-- LEN()
+-- Visszaadja a karakterlánc vagy oszlopkifejezés hosszát (karakterek számát)
+SELECT LEN('T-SQL képzési útmutató')
+
+-- How many characters is each FirstName in the Person.Person table?
+SELECT  FirstName, 
+		LEN(FirstName)
+FROM Person.Person
+
+-- Hány karakterből áll a következő kifejezés, szóközök nélkül.
+SELECT LEN(LTRIM('            Megszámolandó karakterek')) as Szóköz_nélkül
+-- Először levágaja a szóközöket, majd megszámolja a maradék karaktereket.
+
+-- Mit csinál a következő függvény? (Belülről kifelé halad a végrehajtás)
+SELECT REPLACE(UPPER(SUBSTRING('This is a sample expression we are going to manipulate.', 7, 16)), 'E', 'x')
+
+-- Return the first six characters of the string “This is a basic string”.
+SELECT LEFT('This is a basic string', 6)
+
+-- Find the index (integer location) of the first instance of the letter “e” in each product name from the Production.Product table.
+SELECT  Name,
+		CHARINDEX('e', Name) AS e_helye
+FROM Production.Product
+
+-- Find the substring of the territory name from Sales.SalesTerritory starting at the third character and lasting four characters in length.
+SELECT  Name,
+    	SUBSTRING(Name, 3, 4) as Substring
+FROM Sales.SalesTerritory
+
+-- Starting with the string “This is a slightly longer string”, find the last eight characters and then, from that result, find the first four characters. 
+-- In other words, find the first four characters of the last eight characters from the string “This is a slightly longer string”. (Hint: use a nested function for this query)
+SELECT LEFT(RIGHT('This is a slightly longer string', 8), 4) as Substring
+
+-- Írd ki az első "e" betűig a vezetéknekeket. Amiben nincs "e" betű, azokat ne jelenítsd meg.
+SELECT  FirstName, 
+    	LEFT(FirstName, CHARINDEX('e', FirstName)) as ResultingString	-- az "e" betűig írja ki a neveket
+FROM Person.Person
+WHERE CHARINDEX('e', FirstName) > 0		-- Azok megjelenítése, ahol van érték (ami nem üres)
+
+-- Date and Time Built-In Functions - Dátum és idő függvények
