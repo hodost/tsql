@@ -828,3 +828,72 @@ FROM Person.Person
 WHERE CHARINDEX('e', FirstName) > 0		-- Azok megjelenítése, ahol van érték (ami nem üres)
 
 -- Date and Time Built-In Functions - Dátum és idő függvények
+USE AdventureWorks2019
+
+-- GETDATE()
+-- Az SQL Server futását végző számítógép aktuális dátumát és idejét adja vissza.
+-- Ez a függvény datetime típusú értéket ad vissza, amelynek pontossága körülbelül 3.33 milliszekundum.
+SELECT GETDATE() AS Pontos_idő
+
+-- SYSDATETIME()
+-- Az SQL Server futását végző számítógép aktuális dátumát és idejét adja vissza. Valamivel nagyobb pontosságú, mint a GETDATE().
+-- Ez a függvény datetime2 típusú értéket ad vissza, amelynek pontossága körülbelül 100 nanoszekundum.
+-- Mivel a datetime2 típus a SQL Server 2008-ban jelent meg, ez a függvény csak ebben a verzióban vagy az azt követő verziókban használható.
+SELECT SYSDATETIME() AS Pontosabb_idő
+
+-- DATEDIFF()
+-- Két dátum közötti különbséget számolja ki a megadott időegységben.
+-- DATEDIFF (datepart, startdate, enddate)
+
+-- Kor kiszámítása:
+SELECT DATEDIFF(year, '1975-01-15', GETDATE()) AS Kor
+
+-- Mióta dolgozom a cégnél:
+SELECT DATEDIFF(YEAR, '2019.03.25', GETDATE()) AS ÉvekSzáma
+
+-- How many months are between December 25, 1993 and the date that is 2,719 days before today’s date?
+SELECT DATEDIFF(month, '1993-12-25', '2016-08-07') as MonthDifference
+
+-- Számoljuk ki a különbséget a rendelések leadásának és teljesítésének dátuma között napokban az Sales.SalesOrderHeader táblában.
+SELECT 	SalesOrderID, OrderDate, ShipDate,
+    	DATEDIFF(day, OrderDate, ShipDate) as DaysToShip
+FROM Sales.SalesOrderHeader
+ORDER BY DaysToShip DESC
+
+-- DATEADD()
+-- Egy megadott dátumhoz hozzáadja (vagy kivonja) az adott időmennyiséget. 
+-- DATEADD(datepart, number, date)
+-- datepart: Az az időrész, amelyet hozzáadunk vagy kivonunk (például év, hónap, nap, óra, perc, stb.).
+-- number: A hozzáadandó vagy kivonandó időmennyiség (pozitív vagy negatív egész szám).
+-- date: A kiindulási dátum.
+
+-- Egy év hozzáadása egy dátumhoz:
+SELECT DATEADD(year, 1, '2021-02-01') as NewDate
+
+-- Három hónap kivonása:
+SELECT DATEADD(month, -3, GETDATE()) as NewDate
+
+-- Öt perc hozzáadása dátumhoz:
+SELECT DATEADD(minute, 5, '2021-01-01 12:00:00') as NewTime
+
+-- YEAR()
+-- Visszaadja a dátum évét.
+
+-- Milyen évet írunk?
+SELECT YEAR(GETDATE()) as Év
+
+-- Év kiválasztása oszlopból
+SELECT YEAR(ModifiedDate) as MódosításÉve
+FROM Person.Person
+
+-- Milyen év volt 8000 nappal ezelőtt?
+SELECT YEAR(DATEADD(DAY, -8000, GETDATE())) AS '8000_Napja'
+
+-- MONTH()
+-- Visszaadja a dátum hónapját.
+SELECT 	YEAR(ModifiedDate) as MódosításÉve,
+		MONTH(ModifiedDate) as MódosításHónapja,
+		DAY(ModifiedDate) as MódosításNapja
+FROM Person.Person
+
+
