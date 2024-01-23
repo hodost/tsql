@@ -896,4 +896,123 @@ SELECT 	YEAR(ModifiedDate) as MódosításÉve,
 		DAY(ModifiedDate) as MódosításNapja
 FROM Person.Person
 
+-- NULL Handling Functions - NULL kezelő függvények
+USE AdventureWorks2019
+
+-- COALESCE() (Jelentése: egyesül, összetapad)
+-- NULL érték helyettesítése más karakterrel
+
+-- Helyettesítsük egy üres karakterrel a NULL értéket ott, ahol nincs megadva a középső név
+-- Eredeti:
+SELECT TOP 100 FirstName, MiddleName, LastName 
+FROM Person.Person
+ORDER BY FirstName
+-- Módosított:
+SELECT TOP 100 FirstName, 
+		COALESCE(MiddleName, '') AS MiddleName,
+		LastName 
+FROM Person.Person
+ORDER BY FirstName
+
+-- Eredeti:
+SELECT TOP 100 FirstName + ' ' + MiddleName + ' ' + LastName 
+FROM Person.Person
+ORDER BY FirstName
+-- Módosított:
+SELECT TOP 100 FirstName + ' ' + COALESCE(MiddleName, '') + ' ' + LastName 
+FROM Person.Person
+ORDER BY FirstName
+
+SELECT	Name AS ProductName, 
+		COALESCE(Color, '-- No Color Listed --') AS Color
+FROM Production.Product
+
+-- A Person.Person tábla használatával adja vissza a MiddleName oszlopot. 
+-- Ha a MiddleName oszlop NULL, akkor adja vissza a Title oszlopot. 
+-- Ha a Title oszlop NULL, akkor adja vissza a Suffix oszlopot. 
+-- Ha a Suffix oszlop NULL, adja vissza a FirstName oszlopot.
+SELECT COALESCE(MiddleName, Title, Suffix, FirstName)
+FROM Person.Person
+
+-- NULLIF()
+-- Két érték összehasonlítására használják, és NULL-t ad vissza, ha a két érték egyenlő, ellenkező esetben az első argumentum értékét adja vissza.
+-- A NULLIF() függvény időnként egyszerűbb megoldást nyújthat az értékek összehasonlítására egy SELECT utasításban, CASE utasítások nélkül - erről a témáról a későbbi szakaszokban lesz szó.
+
+-- A Sales.SalesOrderHeader táblázatban a BillToAddressID és a ShipToAddressID értéke NULL, ha a BillToAddressID és a ShipToAddressID megegyezik.
+SELECT BillToAddressID, ShipToAddressID, NULLIF(BillToAddressID, ShipToAddressID) AS AzonosVagySem
+FROM Sales.SalesOrderHeader
+ORDER BY AzonosVagySem
+
+-- Ha a Title oszlop NULL a Person.Person táblában, akkor visszaadja a "No Title Listed" szöveget:
+SELECT COALESCE(Title, 'No Title Listed') as Title
+FROM Person.Person;
+
+-- Ha a MiddleName oszlop NULL, akkor add vissza a FirstName és LastName összefűzését. 
+-- Ha a MiddleName nem NULL, akkor add vissza a FirstName, MiddleName és LastName összefűzését:
+	SELECT FirstName, MiddleName, LastName
+	FROM Person.Person;
+
+	-- A SQL-ben bármely sztring konkatenáció, amely tartalmaz NULL értéket, eredményezheti, hogy az egész kifejezés eredménye NULL lesz. 
+	-- Ezért, ha a MiddleName oszlopban NULL értékek vannak, akkor az egész FullName oszlop NULL értéket fog mutatni azokban a sorokban.
+	SELECT FirstName + ' ' + MiddleName + ' ' + LastName as FullName
+	FROM Person.Person;
+
+-- Ezt a problémát a COALESCE vagy az ISNULL függvény használatával lehet kezelni, melyekkel biztosítható, hogy a NULL értékek helyett egy üres sztring (vagy más alapértelmezett érték) kerüljön használatra.
+SELECT FirstName + COALESCE(' ' + MiddleName + ' ', ' ') + LastName as FullName
+FROM Person.Person;
+-- Ugyanez ISNULL-lal:
+SELECT FirstName + ' ' + ISNULL(MiddleName + ' ', '') + LastName as FullName
+FROM Person.Person;
+
+/* Hasonló fügvények magyarázata:
+
+A ISNULL() függvény két argumentumot vesz fel: az első egy kifejezés, a második pedig az az érték, amelyet akkor használ, ha az első kifejezés NULL.
+Alapvetően az első argumentum értékét adja vissza, kivéve, ha az NULL, ebben az esetben a második argumentum értékét adja vissza.
+Példa: ISNULL(MiddleName, 'N/A') visszaadja a MiddleName értékét, kivéve, ha az NULL, ebben az esetben 'N/A'-t ad vissza.
+Csak SQL Server specifikus, nem része az ANSI SQL szabványnak.
+
+A COALESCE() függvény tetszőleges számú argumentumot fogad el, és visszaadja az első nem NULL argumentum értékét.
+Ha minden argumentum NULL, akkor a függvény NULL értéket ad vissza.
+Példa: COALESCE(FirstName, MiddleName, LastName, 'N/A') visszaadja az első nem NULL értékű argumentumot azok közül, amelyeket megadtak.
+ANSI SQL szabvány szerinti függvény, így több SQL rendszerben is használható.
+
+A NULLIF() függvény két argumentumot vesz fel, és NULL értéket ad vissza, ha a két argumentum egyenlő. Ha nem egyenlőek, akkor az első argumentum értékét adja vissza.
+Gyakorlatilag egy rövidített CASE kifejezés, ami ellenőrzi az argumentumok egyenlőségét.
+Példa: NULLIF(Quantity, 0) NULL-t ad vissza, ha a Quantity értéke 0, egyébként a Quantity értékét adja vissza.
+Szintén része az ANSI SQL szabványnak.
+*/
+-- A Production.Product táblából, ha a MakeFlag és FinishedGoodsFlag oszlopok egyenlőek, akkor NULL értéket adj vissza:
+SELECT NULLIF(MakeFlag, FinishedGoodsFlag) as FlagStatus
+FROM Production.Product;
+-- Ha egyenlő, NULL értéket ad vissza, ha nem egyenlő, akkor a MakeFlag értékét.
+
+	-- Ugyanez CASE WHEN -nel:
+	SELECT 
+		CASE 
+			WHEN MakeFlag = FinishedGoodsFlag THEN NULL 
+			ELSE 'Not Equal' 
+		END as FlagStatus
+	FROM Production.Product;
+
+/***********************************************************************
+Section 11: SQL Server Data Types & Type Casting - SQL Server Adattípusok és Típuskonverzió
+***********************************************************************/
+
+/*
+CAST():
+A CAST() függvény az ANSI SQL szabvány része, így általánosabb és más adatbázis-rendszerekben is használható.
+Egyszerűbb szintaxissal rendelkezik: CAST(expression AS data_type).
+Kevesebb opciót kínál a formázáshoz, ami néha korlátozó lehet, különösen dátumok és időpontok konvertálásánál.
+
+CONVERT():
+A CONVERT() függvény specifikus a SQL Server számára és nem része az ANSI SQL szabványnak.
+Bővebb szintaxist kínál: CONVERT(data_type, expression, style), ahol a style argumentum lehetőséget ad a formázásra, különösen dátumok és időpontok esetében.
+A style paraméter segítségével pontosabban szabályozható, hogyan jelenítsük meg a konvertált értékeket, ami nagyobb rugalmasságot biztosít.
+
+Általánosságban a CAST() függvényt használjuk, ha egyszerű adattípus konverzióra van szükségünk és szabvány konformitást szeretnénk.
+*/
+
+SELECT CAST(GETDATE() AS DATE)	-- 2024-01-22
+
+SELECT CONVERT(DATE, GETDATE())	-- 2024-01-22
 
