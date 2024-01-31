@@ -1016,3 +1016,53 @@ SELECT CAST(GETDATE() AS DATE)	-- 2024-01-22
 
 SELECT CONVERT(DATE, GETDATE())	-- 2024-01-22
 
+/*Write the SQL SELECT statement that returns the FirstName column of Person.Person casted as the VARCHAR data type.
+- Írd meg azt az SQL SELECT utasítást, ami a Person.Person tábla FirstName oszlopát VARCHAR adattípusként adja vissza.*/
+SELECT CAST(FirstName AS VARCHAR) AS FirstName
+FROM Person.Person;
+
+-- Az eredeti és a megváltoztatott adattípus megjelenítése:
+SELECT 	FirstName,		-- eredeti adat megjeleítése
+    	SQL_VARIANT_PROPERTY(FirstName, 'BaseType') AS OriginalDataType,	-- az eredeti FirstName oszlop adattípusát adja vissza. A 'BaseType' argumentum jelöli, hogy az adattípus nevét szeretnénk megtudni.
+    	CAST(FirstName AS VARCHAR) AS FirstNameCasted,		--  átalakítja a FirstName oszlopot VARCHAR típusúra, és megjeleníti
+    	SQL_VARIANT_PROPERTY(CAST(FirstName AS VARCHAR), 'BaseType') AS CastedDataType		-- az átalakított FirstName oszlop adattípusát adja vissza.
+FROM Person.Person;
+
+/*Az SQL_VARIANT_PROPERTY() egy erőteljes eszköz az adattípusok dinamikus kezelésére az SQL Serverben. 
+Különösen hasznos olyan helyzetekben, ahol az adatok típusa nem ismert előre, vagy változhat az idő során.*/
+
+/* Write three expressions in a single SELECT statement: one that returns the results of 11 divided by 4. 
+The second column should return the result of 11 casted as float divided by 4 casted as float. The final column should divide 11.0 by 4.0 
+(including the decimal point and trailing zero).
+- Írj három kifejezést egyetlen SELECT utasításban: az első oszlopban 11-et ossz 4-gyel. A második oszlopban 11-et (FLOAT-ként castolva) oszd el 4-gyel (FLOAT-ként castolva). 
+Az utolsó oszlopban 11.0-t oszd el 4.0-val (tizedes ponttal és végződő nullával).*/
+SELECT 11 / 4 AS IntegerDivision,		-- 2
+       CAST(11 AS FLOAT) / CAST(4 AS FLOAT) AS FloatDivision,		-- 2,75
+       11.0 / 4.0 AS DecimalDivision;		-- 2.750000
+
+/* Cast the FirstName column of Person.Person as the VARCHAR(3) data type. What happens? Why?
+- Castold a Person.Person tábla FirstName oszlopát VARCHAR(3) adattípusra. Mi történik? Miért?*/
+SELECT CAST(FirstName AS VARCHAR(3)) AS FirstName
+FROM Person.Person;
+/*Ez a lekérdezés a FirstName oszlopot VARCHAR(3) típusúra alakítja át, ami azt jelenti, hogy csak az első három karaktert tartja meg minden névből.*/
+
+/*Many of the values in the Size column of the Production.Product table contain numeric values. 
+Write a SELECT statement that returns the Size column casted as the integer data type. What is the result? Why?
+- A Production.Product tábla Size oszlopában sok érték numerikus. 
+Írj egy SELECT utasítást, ami a Size oszlopot INTEGER adattípusra castolva adja vissza. Mi lesz az eredmény? Miért?*/
+SELECT CAST(Size AS INT) AS Size
+FROM Production.Product
+WHERE Size IS NOT NULL
+/*Ez a lekérdezés megkísérli a Size oszlop értékeinek INT típusúra alakítását. Mivel azonban a Size oszlop értékei nem mindig numerikusak, ez hibát eredményezhet.*/
+
+/*Using the same SELECT statement that you developed in problem 4, add the WHERE clause, “WHERE ISNUMERIC(Size) = 1”. 
+What is the result of the query now? Why? (Hint: use the MSDN articles to find how the ISNUMERIC() function is used).
+- Az előző 4. feladatban fejlesztett SELECT utasításod használatával adj hozzá egy WHERE feltételt, amely így szól: „WHERE ISNUMERIC(Size) = 1”. 
+Mi lesz a lekérdezés eredménye most? Miért? (Tipp: használd az MSDN cikkeket, hogy megtudd, hogyan használható az ISNUMERIC() függvény).*/
+SELECT CAST(Size AS INT) AS Size
+FROM Production.Product
+WHERE ISNUMERIC(Size) = 1;
+/*Ez a lekérdezés használja az ISNUMERIC() függvényt, hogy meghatározza, vajon a Size oszlop értékei számként értelmezhetők-e. 
+Az ISNUMERIC(Size) = 1 feltétel csak azokat a sorokat választja ki, ahol a Size oszlop értéke numerikus. 
+Ezáltal csak azokat az értékeket alakítja át INT típusúra, amelyek valóban számok, így elkerülve a hibákat.*/
+
