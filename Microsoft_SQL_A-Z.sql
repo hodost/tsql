@@ -1066,3 +1066,26 @@ WHERE ISNUMERIC(Size) = 1;
 Az ISNUMERIC(Size) = 1 feltétel csak azokat a sorokat választja ki, ahol a Size oszlop értéke numerikus. 
 Ezáltal csak azokat az értékeket alakítja át INT típusúra, amelyek valóban számok, így elkerülve a hibákat.*/
 
+/*
+T-SQL Querying Guide © The Knowlton Group, LLC 81 | P a g e
+
+*/
+/***********************************************************************
+Section 12: Table Expressions - Tábla kifejezések
+***********************************************************************/
+
+/* Származtatott táblák
+A származtatott táblák (Derived Tables) olyan táblaszerű kifejezések az SQL-ben, amelyek egy SELECT lekérdezés eredményeként jönnek létre, 
+és csak a lekérdezés futtatásának ideje alatt léteznek. 
+Ezeket gyakran használják részletek összesítésére, komplex számításokra, vagy az adatok előkészítésére egy főlekérdezés számára. 
+Származtatott táblákat gyakran használunk a FROM klózban, és azokat egy alias (álnevet) adunk nekik, hogy könnyebben hivatkozhassunk rájuk.*/
+
+/*Tegyük fel, hogy szeretnénk megtudni, melyik termékeknek van a legmagasabb standard költségük a Production.Product táblában. 
+Egy származtatott táblát használhatunk az összes termék maximum standard költségének kiszámítására, majd ezt összehasonlítjuk a fő táblával.*/
+SELECT p.Name, p.StandardCost
+FROM Production.Product AS p
+INNER JOIN (
+    SELECT MAX(StandardCost) AS MaxCost		-- Származtatott tábla létrehozása MaxCost néven, amely csak egy oszlopot tartalmaz (2171,2942)
+    FROM Production.Product
+) AS MaxCosts ON p.StandardCost = MaxCosts.MaxCost;		-- A MaxCost származtatott táblát összekapcsoljuk a Production.Product táblával, hogy megtaláljuk a legmagasabb standard költségű terméket.
+
