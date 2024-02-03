@@ -1089,3 +1089,4 @@ INNER JOIN (
     FROM Production.Product
 ) AS MaxCosts ON p.StandardCost = MaxCosts.MaxCost;		-- A MaxCost származtatott táblát összekapcsoljuk a Production.Product táblával, hogy megtaláljuk a legmagasabb standard költségű terméket.
 
+USE AdventureWorks2019
