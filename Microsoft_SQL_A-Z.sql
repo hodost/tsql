@@ -1073,12 +1073,37 @@ T-SQL Querying Guide © The Knowlton Group, LLC 81 | P a g e
 /***********************************************************************
 Section 12: Table Expressions - Tábla kifejezések
 ***********************************************************************/
+/* Táblakifejezések típusai:
+1. Származtatott Táblák (Derived Tables)
+	Származtatott táblák olyan lekérdezésekből származnak, amelyek a FROM klóz részeként vannak használva. 
+	Egy származtatott tábla egy ideiglenes, lekérdezés által generált tábla, amely a lekérdezés futtatásának idejére jön létre.
+
+2. Közös Tábla Kifejezések (Common Table Expressions, CTE-k)
+	A CTE-k olyan ideiglenes eredménykészletek, amelyek a lekérdezés elején vannak definiálva az WITH klózzal, 
+	és segítenek strukturálni a komplex lekérdezéseket, hogy könnyebben olvashatók és karbantarthatók legyenek. 
+	Egy CTE-t a lekérdezés bármely részében fel lehet használni, miután definiálták.
+
+3. Táblafüggvények (Table-valued Functions)
+	Táblafüggvények olyan funkciók, amelyek táblaszerű eredménykészletet adnak vissza. 
+	Két fő típusa van: az inline táblafüggvények és a többlépéses táblafüggvények. Ezeket a függvényeket a FROM klózban hívják meg, hasonlóan a származtatott táblákhoz vagy CTE-khez.
+
+4. JOIN Operációk
+	A JOIN operációk lehetővé teszik két vagy több tábla összekapcsolását és egyesítését egyetlen táblaszerű eredménykészletbe. 
+	Bár a JOIN-ok nem táblakifejezések a szoros értelemben, a JOIN-ok eredményei gyakran funkcionálnak ideiglenes táblaként, 
+	amelyeket további műveletekhez használhatunk a lekérdezésben.
+*/
+
+
 
 /* Származtatott táblák
 A származtatott táblák (Derived Tables) olyan táblaszerű kifejezések az SQL-ben, amelyek egy SELECT lekérdezés eredményeként jönnek létre, 
 és csak a lekérdezés futtatásának ideje alatt léteznek. 
 Ezeket gyakran használják részletek összesítésére, komplex számításokra, vagy az adatok előkészítésére egy főlekérdezés számára. 
-Származtatott táblákat gyakran használunk a FROM klózban, és azokat egy alias (álnevet) adunk nekik, hogy könnyebben hivatkozhassunk rájuk.*/
+Származtatott táblákat gyakran használunk a FROM klózban, és azokat egy alias (álnevet) adunk nekik, hogy könnyebben hivatkozhassunk rájuk.
+
+A "származtatott tábla" (derived table) elnevezés abból adódik, hogy ez a tábla nem létezik önállóan az adatbázisban, mint egy előre meghatározott tábla. 
+Ehelyett, egy másik lekérdezés eredményeként jön létre, vagyis egy fő lekérdezésen belüli, zárójelek közé foglalt al-lekérdezés eredményeként "származik". 
+A származtatott tábla ideiglenes, és csak a lekérdezés futtatásának ideje alatt létezik, amely létrehozza azt.*/
 
 /*Tegyük fel, hogy szeretnénk megtudni, melyik termékeknek van a legmagasabb standard költségük a Production.Product táblában. 
 Egy származtatott táblát használhatunk az összes termék maximum standard költségének kiszámítására, majd ezt összehasonlítjuk a fő táblával.*/
@@ -1089,4 +1114,9 @@ INNER JOIN (
     FROM Production.Product
 ) AS MaxCosts ON p.StandardCost = MaxCosts.MaxCost;		-- A MaxCost származtatott táblát összekapcsoljuk a Production.Product táblával, hogy megtaláljuk a legmagasabb standard költségű terméket.
 
-USE AdventureWorks2019
+SELECT *
+FROM (
+	SELECT BusinessEntityID, FirstName, LastName
+	FROM Person.Person) 
+	AS PersonName
+
